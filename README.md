@@ -25,8 +25,8 @@ A Streamlit-powered platform that enables anyone to backtest trading strategies 
 ## Installation
 
 ```bash
-git clone https://github.com/yourusername/backtesting-framework.git
-cd backtesting-framework
+git clone https://github.com/aadit-n/backtester.git
+cd backtester
 pip install -r requirements.txt
 
 ```
