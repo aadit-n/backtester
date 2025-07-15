@@ -5,7 +5,7 @@ from indicator_engine import get_indicators
 from backtest_engine import backtest
 from visualisation import plot_equity_curve, plot_all_indicators, plot_pnl_histogram
 from indicator_config import indicators_list as indicators_config
-from optimiser import grid_search
+from optimiser import bayesian_optimiser
 
 
 
@@ -186,20 +186,24 @@ if "df" in st.session_state:
         
 
         st.sidebar.markdown('---')
+
+        n_trials = st.sidebar.number_input("Number of Trials", min_value=1, max_value=1000, value=50)
         optimise = st.sidebar.button("Optimise Indicators")
         if optimise:
             st.info("🔄 Running parameter grid optimization...")
-            result, best_config = grid_search(df, st.session_state.selected_indicators, long_entry_expr, short_entry_expr, exit_expr)
+            result, best_config = bayesian_optimiser(df, st.session_state.selected_indicators, long_entry_expr, short_entry_expr, exit_expr, n_trials)
 
-            if result:
-                st.success(f"Best result from {best_config['name'].upper()} with params {best_config['params']}")
+        if result:
+            st.success("Best results from parameter optimization:")
+            for cfg in best_config:
+                st.write(f"• {cfg['name'].upper()} → {cfg['params']}")
+
                 st.plotly_chart(plot_equity_curve(result['equity']), key="equity_curve_opt")
                 st.metric("Total Return", f"${result['total_return']:.2f}")
                 st.metric("CAGR", f"{result['CAGR']*100:.2f}%")
                 st.metric("Sharpe Ratio", f"{result['sharpe_ratio']:.2f}")
             else:
-                st.error("No valid combinations found.")
-
+                st.error("No valid parameter combinations found.")
     except Exception as e:
         st.error(f"Error in strategy logic: {e}")
 
