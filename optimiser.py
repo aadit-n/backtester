@@ -1,45 +1,85 @@
-import itertools
+import optuna
 from backtest_engine import backtest
 from indicator_engine import get_indicators
 import pandas as pd
 
-def grid_search(df, base_configs, long_expr, short_expr, exit_expr):
-    best_result = None
-    best_config = None
+def bayesian_optimiser(df, base_configs, long_expr, short_expr, exit_expr, n_trials=50):
+    def objective(trial):
+        df_copy = df.copy()
+        applied_configs = []
 
-    for config in base_configs:
-        param_grid = config['param_grid']
-        keys = list(param_grid.keys())
-        values = list(param_grid.values())
-        all_combinations = list(itertools.product(*values))
-
-        for combo in all_combinations:
-            params = dict(zip(keys, combo))
-            df_copy = df.copy()
-
-            try:
-                outputs = get_indicators(df_copy, {
-                    "name": config["name"],
-                    "inputs": config["inputs"],
-                    "params": params
-                })
-                for col, series in outputs.items():
-                    df_copy[col] = series
-
-                safe_globals = {"df": df_copy, "pd": pd, "len": len, "__builtins__": {}}
-                long_signal = eval(long_expr, safe_globals)
-                short_signal = eval(short_expr, safe_globals)
-                exit_signal = eval(exit_expr, safe_globals)
-
-                result = backtest(df_copy, long_signal, short_signal, exit_signal)
-
-                if best_result is None or result["total_return"] > best_result["total_return"]:
-                    best_result = result
-                    best_config = {
-                        "name": config["name"],
-                        "params": params
-                    }
-            except Exception:
+        for config in base_configs:
+            param_grid = config.get("param_grid", {})
+            if not param_grid:
                 continue
 
-    return best_result, best_config
+            sampled_params = {
+                key: trial.suggest_categorical(f"{config['name']}_{key}", values)
+                for key, values in param_grid.items()
+            }
+
+            outputs = get_indicators(df_copy, {
+                "name": config["name"],
+                "inputs": config["inputs"],
+                "params": sampled_params
+            })
+
+            for col, series in outputs.items():
+                df_copy[col] = series
+
+            applied_configs.append({
+                "name": config["name"],
+                "params": sampled_params,
+                "inputs": config["inputs"]
+            })
+
+        try:
+            safe_globals = {"df": df_copy, "pd": pd, "len": len, "__builtins__": {}}
+            long_signal = eval(long_expr, safe_globals)
+            short_signal = eval(short_expr, safe_globals)
+            exit_signal = eval(exit_expr, safe_globals)
+
+            result = backtest(df_copy, long_signal, short_signal, exit_signal)
+            return result["total_return"]
+        except Exception:
+            return -float("inf")
+
+    study = optuna.create_study(direction="maximize")
+    study.optimize(objective, n_trials=n_trials)
+
+    best_trial = study.best_trial
+    df_copy = df.copy()
+    best_config = []
+
+    for config in base_configs:
+        param_grid = config.get("param_grid", {})
+        if not param_grid:
+            continue
+
+        sampled_params = {
+            key: best_trial.params[f"{config['name']}_{key}"]
+            for key in param_grid.keys()
+        }
+
+        outputs = get_indicators(df_copy, {
+            "name": config["name"],
+            "inputs": config["inputs"],
+            "params": sampled_params
+        })
+
+        for col, series in outputs.items():
+            df_copy[col] = series
+
+        best_config.append({
+            "name": config["name"],
+            "params": sampled_params
+        })
+
+    safe_globals = {"df": df_copy, "pd": pd, "len": len, "__builtins__": {}}
+    long_signal = eval(long_expr, safe_globals)
+    short_signal = eval(short_expr, safe_globals)
+    exit_signal = eval(exit_expr, safe_globals)
+
+    result = backtest(df_copy, long_signal, short_signal, exit_signal)
+
+    return result, best_config
