@@ -86,6 +86,3 @@ streamlit run app.py
    <img width="1398" height="814" alt="image" src="https://github.com/user-attachments/assets/2c46c35b-9908-4faf-a8b6-024504383cbd" />
 
 
-
-## ⭐️ Star This Repo
-If you found this project useful, give it a ⭐️! It motivates future enhancements and helps others discover it too.
