@@ -61,8 +61,8 @@ st.title("Drag-and-Drop Backtesting Framework")
 
 st.sidebar.header("Market & Data Settings")
 ticker = st.sidebar.text_input("Ticker", value="AAPL")
-interval = st.sidebar.selectbox("Interval", ["1m", "5m", "15m", "1h", "1d"], index=2)
-period = st.sidebar.selectbox("Period", ["7d", "30d", "90d", "1y", "2y", "5y", "10y"], index=1)
+interval = st.sidebar.selectbox("Interval", ["1m", "5m", "15m", "1h", "1d"], index=4)
+period = st.sidebar.selectbox("Period", ["7d", "30d", "90d", "1y", "2y", "5y", "10y"], index=5)
 
 st.sidebar.markdown("---")
 
@@ -77,7 +77,7 @@ selected_name = st.sidebar.selectbox("Choose Indicator", indicator_names)
 base_config = next(ind for ind in indicators_config if ind["name"] == selected_name)
 
 user_params = {
-    param: st.sidebar.number_input(f"{selected_name.upper()} - {param}", value=default)
+    param: float(st.sidebar.number_input(f"{selected_name.upper()} - {param}", value=float(default)))
     for param, default in base_config["params"].items()
 }
 
@@ -202,7 +202,7 @@ if "df" in st.session_state:
         n_trials = st.sidebar.number_input("Number of Trials", min_value=1, max_value=1000, value=50)
         optimise = st.sidebar.button("Optimise Indicators")
         if optimise:
-            st.info("🔄 Running parameter grid optimization...")
+            st.info("Running parameter grid optimization...")
             result, best_config = bayesian_optimiser(df, st.session_state.selected_indicators, long_entry_expr, short_entry_expr, exit_expr, n_trials)
 
         if result:
