@@ -6,6 +6,7 @@ from backtest_engine import backtest
 from visualisation import plot_equity_curve, plot_all_indicators, plot_pnl_histogram
 from indicator_config import indicators_list as indicators_config
 from optimiser import bayesian_optimiser
+import uuid
 
 
 
@@ -130,6 +131,10 @@ if "df" in st.session_state:
     st.markdown("#### Exit Conditions")
     exit_expr = build_strategy_conditions(df, "exit")
 
+    st.markdown("### Risk Management")
+    stop_loss_pct = st.number_input("Stop Loss (%)", value=0.0, min_value=0.0, format="%.2f")
+    take_profit_pct = st.number_input("Take Profit (%)", value=0.0, min_value=0.0, format="%.2f")
+
     try:
         safe_globals = {
             "df": df,
@@ -153,7 +158,14 @@ if "df" in st.session_state:
             st.info("No indicators to display.")
 
 
-        result = backtest(df, long_signal, short_signal, exit_signal)
+        result = backtest(
+            df,
+            long_signal,
+            short_signal,
+            exit_signal,
+            stop_loss_pct=stop_loss_pct,
+            take_profit_pct=take_profit_pct
+        )
     
 
 
@@ -198,7 +210,7 @@ if "df" in st.session_state:
             for cfg in best_config:
                 st.write(f"• {cfg['name'].upper()} → {cfg['params']}")
 
-                st.plotly_chart(plot_equity_curve(result['equity']), key="equity_curve_opt")
+                st.plotly_chart(plot_equity_curve(result['equity']), key=f"equity_curve_opt_{uuid.uuid4()}")
                 st.metric("Total Return", f"${result['total_return']:.2f}")
                 st.metric("CAGR", f"{result['CAGR']*100:.2f}%")
                 st.metric("Sharpe Ratio", f"{result['sharpe_ratio']:.2f}")
