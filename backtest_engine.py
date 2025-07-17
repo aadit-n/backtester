@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-def backtest(data, long_signal, short_signal, exit_signal, initial_capital=10000, position_size=0.95):
+def backtest(data, long_signal, short_signal, exit_signal, initial_capital=10000, position_size=0.95, stop_loss_pct=0.0, take_profit_pct=0.0):
     ini_cap = initial_capital
     capital = initial_capital
     position = 0
@@ -15,43 +15,49 @@ def backtest(data, long_signal, short_signal, exit_signal, initial_capital=10000
         current_price = data['Close'].iloc[i]
         date = data.index[i]
 
-        if long_signal.iloc[i] and position == 0:
-            shares = int((capital * position_size) / current_price)
-            capital -= shares * current_price
-            entry_price = current_price
-            entry_index = date
-            position = 1
-
-        elif short_signal.iloc[i] and position == 0:
-            shares = int((capital * position_size) / current_price)
-            capital += shares * current_price  
-            entry_price = current_price
-            entry_index = date
-            position = -1
-
-        elif exit_signal.iloc[i] and position != 0:
-            if position == 1:
-                capital += shares * current_price
-                pnl = (current_price - entry_price) * shares
-                trade_pnls.append(pnl)
-            elif position == -1:
+        if position == 0:
+            if long_signal.iloc[i]:
+                shares = int((capital * position_size) / current_price)
                 capital -= shares * current_price
-                pnl = (entry_price - current_price) * shares
+                entry_price = current_price
+                entry_index = date
+                position = 1
+
+            elif short_signal.iloc[i]:
+                shares = int((capital * position_size) / current_price)
+                capital += shares * current_price
+                entry_price = current_price
+                entry_index = date
+                position = -1
+
+        elif position != 0:
+            price_change = (current_price - entry_price) / entry_price if position == 1 else (entry_price - current_price) / entry_price
+            hit_stop_loss = stop_loss_pct > 0 and price_change <= -stop_loss_pct / 100
+            hit_take_profit = take_profit_pct > 0 and price_change >= take_profit_pct / 100
+
+            if exit_signal.iloc[i] or hit_stop_loss or hit_take_profit:
+                if position == 1:
+                    capital += shares * current_price
+                    pnl = (current_price - entry_price) * shares
+                elif position == -1:
+                    capital -= shares * current_price
+                    pnl = (entry_price - current_price) * shares
+
                 trade_pnls.append(pnl)
+                trades.append({
+                    "Entry Time": entry_index,
+                    "Exit Time": date,
+                    "Type": "Long" if position == 1 else "Short",
+                    "Entry Price": entry_price,
+                    "Exit Price": current_price,
+                    "PnL": pnl
+                })
 
-            trades.append({
-                "Entry Time": entry_index,
-                "Exit Time": date,
-                "Type": "Long" if position == 1 else "Short",
-                "Entry Price": entry_price,
-                "Exit Price": current_price,
-                "PnL": pnl
-            })
+                position = 0
+                shares = 0
+                entry_price = 0
 
-            position = 0
-            shares = 0
-            entry_price = 0
-
+        # Equity curve update
         if position == 1:
             portfolio_value = capital + (shares * current_price)
         elif position == -1:
