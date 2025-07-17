@@ -5,7 +5,7 @@ import numpy as np
 def get_indicators(df, config):
     name = config["name"].lower()
     params = config["params"]
-    inputs = [df[input_col].dropna().values for input_col in config["inputs"]]
+    inputs = [df[input_col].dropna().values.astype(np.float64) for input_col in config["inputs"]]
 
     try:
         func = getattr(tp, name)
@@ -14,13 +14,13 @@ def get_indicators(df, config):
 
     result = func(*inputs, **params)
 
-    if isinstance(result, tuple):  
-        columns = [f"{name.upper()}_{key}_{'_'.join(map(str, params.values()))}" for key in ["upper", "middle", "lower"]]
+    if isinstance(result, tuple):
+        columns = [f"{name.upper()}_{i}_{'_'.join(map(str, params.values()))}" for i in range(len(result))]
         series_dict = {
             col: pd.Series(res, index=df.index[-len(res):])
             for col, res in zip(columns, result)
         }
-    else:  
+    else:
         col_name = f"{name.upper()}_{'_'.join(map(str, params.values()))}"
         series_dict = {
             col_name: pd.Series(result, index=df.index[-len(result):])
