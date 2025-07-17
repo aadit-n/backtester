@@ -1,7 +1,8 @@
-streamlit>=1.30.0
-pandas>=2.0.0
-numpy>=1.24.0
-yfinance>=0.2.36
-plotly>=5.18.0
-tulipy>=0.4.0
-scikit-learn>=1.4.0
+streamlit
+pandas
+numpy
+yfinance
+plotly
+tulipy
+scikit-learn
+optuna
