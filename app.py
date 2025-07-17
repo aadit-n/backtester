@@ -115,7 +115,7 @@ if "df" in st.session_state:
     df = st.session_state.df
 
     st.subheader(f"Fetched Data for **{ticker}** | Interval: `{interval}`, Period: `{period}`")
-    st.dataframe(df.tail())
+    st.dataframe(df)
 
     st.subheader("Strategy Logic")
 
