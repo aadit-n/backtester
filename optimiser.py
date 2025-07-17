@@ -13,10 +13,12 @@ def bayesian_optimiser(df, base_configs, long_expr, short_expr, exit_expr, n_tri
             if not param_grid:
                 continue
 
-            sampled_params = {
-                key: trial.suggest_categorical(f"{config['name']}_{key}", values)
-                for key, values in param_grid.items()
-            }
+            sampled_params = {}
+            for key, bounds in param_grid.items():
+                if isinstance(bounds[0], int) and isinstance(bounds[1], int):
+                    sampled_params[key] = trial.suggest_int(f"{config['name']}_{key}", bounds[0], bounds[1])
+                else:
+                    sampled_params[key] = trial.suggest_float(f"{config['name']}_{key}", bounds[0], bounds[1])
 
             outputs = get_indicators(df_copy, {
                 "name": config["name"],
@@ -81,5 +83,6 @@ def bayesian_optimiser(df, base_configs, long_expr, short_expr, exit_expr, n_tri
     exit_signal = eval(exit_expr, safe_globals)
 
     result = backtest(df_copy, long_signal, short_signal, exit_signal)
+    
 
     return result, best_config
