@@ -1,7 +1,7 @@
 # backtester
 Drag-and-Drop Backtesting Framework built with Streamlit for easy strategy creation and evaluation. Supports custom technical indicators, user-defined entry/exit rules, and features parameter optimization via grid or random search to find the best trading strategy configurations efficiently.
 
-# Drag-and-Drop Backtesting Framework
+## Backtesting Framework
 
 A Streamlit-powered platform that enables anyone to backtest trading strategies with zero coding. Define your logic visually, select from 80+ technical indicators, and run strategy optimizations to discover the most profitable configurations using grid or random search.
 
