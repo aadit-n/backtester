@@ -18,17 +18,19 @@ def backtest(data, long_signal, short_signal, exit_signal, initial_capital=10000
         if position == 0:
             if long_signal.iloc[i]:
                 shares = int((capital * position_size) / current_price)
-                capital -= shares * current_price
-                entry_price = current_price
-                entry_index = date
-                position = 1
+                if shares > 0:  
+                    capital -= shares * current_price
+                    entry_price = current_price
+                    entry_index = date
+                    position = 1
 
             elif short_signal.iloc[i]:
                 shares = int((capital * position_size) / current_price)
-                capital += shares * current_price
-                entry_price = current_price
-                entry_index = date
-                position = -1
+                if shares > 0: 
+                    capital += shares * current_price
+                    entry_price = current_price
+                    entry_index = date
+                    position = -1
 
         elif position != 0:
             price_change = (current_price - entry_price) / entry_price if position == 1 else (entry_price - current_price) / entry_price
@@ -57,7 +59,6 @@ def backtest(data, long_signal, short_signal, exit_signal, initial_capital=10000
                 shares = 0
                 entry_price = 0
 
-        # Equity curve update
         if position == 1:
             portfolio_value = capital + (shares * current_price)
         elif position == -1:
@@ -69,8 +70,17 @@ def backtest(data, long_signal, short_signal, exit_signal, initial_capital=10000
 
     equity_series = pd.Series(equity, index=data.index)
     returns = equity_series.pct_change().dropna()
-    sharpe = returns.mean() / returns.std() * (252) if not returns.empty else 0
-    cagr = ((equity[-1] / ini_cap) ** (252 / len(equity))) - 1 if len(equity) > 1 else 0
+    
+    sharpe = returns.mean() / returns.std() * np.sqrt(252) if not returns.empty and returns.std() != 0 else 0
+    
+    if len(equity) > 1:
+        start_date = data.index[0]
+        end_date = data.index[-1]
+        years = (end_date - start_date).days / 365.25
+        cagr = ((equity[-1] / ini_cap) ** (1 / years)) - 1 if years > 0 else 0
+    else:
+        cagr = 0
+    
     max_dd, drawdown_series = calculate_max_drawdown(equity_series)
     sortino_ratio = calculate_sortino_ratio(returns)    
     calmar_ratio = cagr / abs(max_dd) if max_dd != 0 else 0
@@ -106,4 +116,5 @@ def calculate_sortino_ratio(returns, target=0):
     downside_returns = returns[returns < target]
     expected_return = returns.mean() - target
     downside_std = downside_returns.std()
-    return expected_return / downside_std if downside_std != 0 else 0
+    sortino = (expected_return / downside_std * np.sqrt(252)) if downside_std != 0 else 0
+    return sortino
