@@ -57,7 +57,7 @@ def build_strategy_conditions(df, key_prefix):
 
 
 st.set_page_config(layout="wide")
-st.title("Drag-and-Drop Backtesting Framework")
+st.title("Backtesting Framework")
 st.markdown(""" 
 This tool allows you to visually build, test, and optimize trading strategies using technical indicators.
 """)
