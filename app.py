@@ -154,7 +154,7 @@ st.sidebar.header("Market & Data Settings")
 st.sidebar.caption("Select the stock ticker, timeframe, and historical period to fetch data for backtesting.")
 ticker = st.sidebar.text_input("Ticker", value="AAPL")
 interval = st.sidebar.selectbox("Interval", ["1m", "5m", "15m", "1h", "1d"], index=4)
-period = st.sidebar.selectbox("Period", ["7d", "30d", "90d", "1y", "2y", "5y", "10y"], index=5)
+period = st.sidebar.selectbox("Period", ["7d", "30d", "60d", "90d", "1y", "2y", "5y", "10y"], index=6)
 
 st.sidebar.markdown("---")
 
