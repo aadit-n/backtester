@@ -58,6 +58,9 @@ def build_strategy_conditions(df, key_prefix):
 
 st.set_page_config(layout="wide")
 st.title("Backtesting Framework")
+st.markdown("""
+DISCLAIMER: NONE OF THE DATA OR RESULTS PROVIDED BY THIS WEBSITE/APP IS FINANCIAL ADVICE. ALL FINANCIAL DECISIONS MADE BY THE USER ARE INDEPENDENT OF THE RESULTS SHOWN HERE.
+"""
 st.markdown(""" 
 This tool allows you to visually build, test, and optimize trading strategies using technical indicators.
 """)
@@ -386,3 +389,4 @@ if "df" in st.session_state:
 
 else:
     st.info("Please fetch data and run backtest first.")
+
