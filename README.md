@@ -1,5 +1,8 @@
 # backtester
+
 DISCLAIMER: NONE OF THE DATA OR RESULTS PROVIDED BY THIS WEBSITE/APP IS FINANCIAL ADVICE. ALL FINANCIAL DECISIONS MADE BY THE USER ARE INDEPENDENT OF THE RESULTS SHOWN HERE.
+
+
 Drag-and-Drop Backtesting Framework built with Streamlit for easy strategy creation and evaluation. Supports custom technical indicators, user-defined entry/exit rules, and features parameter optimization via grid or random search to find the best trading strategy configurations efficiently.
 
 # Try it out here!! --> [https://backtestingframework.streamlit.app](https://backtestingframework.streamlit.app)
